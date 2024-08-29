@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: shopper-desafio-tecnico-db
+    volumes:
+      - db:/var/lib/postgresql/data
+
+
+volumes:
+  db:
+    driver: local
