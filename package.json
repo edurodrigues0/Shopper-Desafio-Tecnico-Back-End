@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "db:seed": "tsx prisma/seed.ts",
     "test": "vitest run --dir src/use-cases",
     "test:watch": "vitest --dir src/use-cases",
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup src --out-dir build",
+    "start": "node build/server.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +19,7 @@
     "@vitest/coverage-v8": "2.0.5",
     "prisma": "5.19.0",
     "ts-node": "10.9.2",
+    "tsup": "8.2.4",
     "tsx": "4.19.0",
     "typescript": "5.5.4",
     "vite": "5.4.2",
