@@ -1,7 +1,5 @@
+import { Measure, MeasureType, Prisma } from "@prisma/client";
 import { DoubleReportError } from "@/use-cases/errors/double-report-error";
-import { Measure, Prisma } from "@prisma/client";
-
-type MeasureType = 'WATER' | 'GAS'
 
 export interface MeasuresRepository {
   /**

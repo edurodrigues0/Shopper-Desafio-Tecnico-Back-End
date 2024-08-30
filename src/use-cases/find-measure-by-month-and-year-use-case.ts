@@ -1,8 +1,7 @@
-import { Measure } from "@prisma/client"
+import { MeasureType } from "@prisma/client"
+
 import { MeasuresRepository } from "../repositories/measures-repository"
 import { DoubleReportError } from "./errors/double-report-error"
-
-type MeasureType = 'WATER' | 'GAS'
 
 interface FindMeasureByMonthAndYearRequest {
   customerCode: string

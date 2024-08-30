@@ -12,18 +12,18 @@ export async function fetchMeasureRoute(app: FastifyInstance) {
     });
 
     const listMeasureQuerySchema = z.object({
-      type: z.string().optional()
+      measure_type: z.string().optional()
     })
 
     const { customerCode } = listMeasureParamsSchema.parse(request.params);
-    const { type } = listMeasureQuerySchema.parse(request.query)
+    const { measure_type } = listMeasureQuerySchema.parse(request.query)
 
     try {
       const fetchMeasuresUseCase = makeFetchMeasuresUseCase()
 
       const { measures } = await fetchMeasuresUseCase.execute({
         customerCode,
-        type,
+        type: measure_type,
       })
 
       return reply.code(200).send({

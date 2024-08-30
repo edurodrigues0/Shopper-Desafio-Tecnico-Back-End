@@ -1,9 +1,8 @@
-import { Measure } from "@prisma/client";
-import { MeasuresRepository } from "../repositories/measures-repository";
-import { CustomersRepository } from "../repositories/customers-repository";
-import { DoubleReportError } from "./errors/double-report-error";
+import { Measure, MeasureType } from "@prisma/client";
 
-type MeasureType = 'WATER' | 'GAS'
+import { MeasuresRepository } from "@/repositories/measures-repository";
+import { CustomersRepository } from "@/repositories/customers-repository";
+
 
 interface CreateMeasureUseCaseRequest {
   imageUrl: string

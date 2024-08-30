@@ -1,10 +1,15 @@
+import { randomUUID } from 'node:crypto';
+
 import { z } from 'zod';
 import { FastifyInstance } from 'fastify';
-import { genAi } from '../../lib/genAi';
-import { uploadImageToStorage } from '../../utils/upload-image-to-storage';
-import { makeFindMeasureByMonthAndYearUseCase } from '../../use-cases/factories/make-find-measure-by-month-and-year-use-case';
-import { makeCreateMeasureUseCase } from '../../use-cases/factories/make-create-measure-use-case';
+import { GoogleGenerativeAIFetchError } from '@google/generative-ai';
+
+import { genAi } from '@/lib/genAi';
+import { makeFindMeasureByMonthAndYearUseCase } from '@/use-cases/factories/make-find-measure-by-month-and-year-use-case';
+import { makeCreateMeasureUseCase } from '@/use-cases/factories/make-create-measure-use-case';
 import { DoubleReportError } from '@/use-cases/errors/double-report-error';
+import { uploadImageAndGetUrl } from '@/utils/upload-image-and-get-url';
+import { generatePresignedUrl } from '@/utils/generate-presigned-url';
 
 export async function uploadRoute(app: FastifyInstance) {
   app.post('/upload', async (request, reply) => {
@@ -45,8 +50,7 @@ export async function uploadRoute(app: FastifyInstance) {
         measureDate: new Date(measure_datetime),
       })
 
-      // const prompt = `Extract and return only the numerical value displayed on the meter in the image.`
-      const prompt = "1 + 1?"
+      const prompt = `Extract and return ONLY the numerical value displayed on the meter in the image.`
       const img = {
         inlineData: {
           data: image.toString("base64"),
@@ -56,8 +60,7 @@ export async function uploadRoute(app: FastifyInstance) {
 
       const model = genAi.getGenerativeModel({ model: "gemini-1.5-pro" })
 
-      const result = await model.generateContent([prompt])
-      console.log(result.response.text())
+      const result = await model.generateContent([prompt, img])
 
       const measureValue = parseFloat(result.response.text())
 
@@ -68,18 +71,21 @@ export async function uploadRoute(app: FastifyInstance) {
         })
       }
 
-      const uploadedImageUrl = await uploadImageToStorage(image)
+      const {
+        publicUrl,
+        temporaryLink,
+      } = await uploadImageAndGetUrl(image, randomUUID(), img.inlineData.mimeType)
       
       const { measure } = await createMeasureUseCase.execute({
         measureValue,
         customerCode: customer_code, 
-        imageUrl: uploadedImageUrl,
+        imageUrl: publicUrl,
         measureDate: new Date(measure_datetime),
         measureType: measure_type,
       })
 
       return reply.code(200).send({
-        image_url: uploadedImageUrl,
+        image_url: temporaryLink,
         measure_uuid: measure.id,
         measure_value: measure.measureValue,
       })
@@ -91,7 +97,14 @@ export async function uploadRoute(app: FastifyInstance) {
         })
       }
 
-      console.error(err)
+      if (err instanceof GoogleGenerativeAIFetchError) {
+        return reply.code(500).send({
+          erro_code: "INTERNAL_SERVE_ERROR",
+          error_descriprion: err
+        })
+      }
+
+      console.log(err)
     }
   });
 }
